@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import {
   FaFolder,
   FaFolderOpen,
@@ -48,6 +49,18 @@ const getFileIcon = (filename) => {
 const TreeNode = ({ node, depth = 0, onUpdate }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: node.id,
+  });
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: node.id,
+  });
+
   const hasChildren = node.type === "folder" && node.children?.length > 0;
 
   const toggleOpen = () => {
@@ -75,8 +88,16 @@ const TreeNode = ({ node, depth = 0, onUpdate }) => {
   return (
     <div>
       <div
-        className="flex items-center justify-between hover:bg-gray-700 rounded px-2 py-1 "
+        className={`flex items-center justify-between hover:bg-gray-700 rounded px-2 py-1 ${
+          isDragging ? "border border-white" : ""
+        }`}
         style={{ paddingLeft: `${depth * 16}px` }}
+        ref={(el) => {
+          setDragRef(el);
+          setDropRef(el);
+        }}
+        {...attributes}
+        {...listeners}
       >
         {/* Left: Icon + Name */}
         <div
@@ -95,7 +116,7 @@ const TreeNode = ({ node, depth = 0, onUpdate }) => {
           <span>{node.name}</span>
         </div>
 
-        {/* Right: Action buttons */}
+        {/* Action buttons */}
         <div className="flex gap-2 text-sm">
           {node.type === "folder" && (
             <>
